@@ -1,45 +1,7 @@
-apply plugin: 'groovy'
-
-dependencies {
-  runtime group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
-}
-
-repositories {
-  jcenter()
-  mavenCentral()
-}
-
-configurations {
-    runtime.exclude group: 'cglib',                     module: 'cglib'
-    runtime.exclude group: 'org.apache.commons',        module: 'commons-codec'
-    runtime.exclude group: 'org.apache.commons',        module: 'commons-exec'
-    runtime.exclude group: 'commons-io',                module: 'commons-io'
-    runtime.exclude group: 'org.apache.commons',        module: 'commons-logging'
-    runtime.exclude group: 'org.apache.commons',        module: 'commons-codec'
-    runtime.exclude group: 'org.codehaus.groovy',       module: 'groovy-all'
-    runtime.exclude group: 'com.google.code.gson',      module: 'gson'
-    runtime.exclude group: 'com.google.guava',          module: 'guava'
-    runtime.exclude group: 'org.hamcrest',              module: 'hamcrest-core'
-    runtime.exclude group: 'org.apache.httpcomponents', module: 'httpclient'
-    runtime.exclude group: 'org.apache.httpcomponents', module: 'httpcore'
-    runtime.exclude group: 'net.java.dev.jna',          module: 'jna'
-    runtime.exclude group: 'net.java.dev.jna',          module: 'jna-platform'
-    runtime.exclude group: 'ch.qos.logback',            module: 'logback-classic'
-    runtime.exclude group: 'ch.qos.logback',            module: 'logback-core'
-    runtime.exclude group: 'org.seleniumhq.selenium',   module: 'selenium-api'
-    runtime.exclude group: 'org.seleniumhq.selenium',   module: 'selenium-remote-driver'
-    runtime.exclude group: 'org.slf4j',                 module: 'slf4j-api'
-}
-
 task deleteJarsInDriversDir(type: Delete) {
   delete fileTree('Drivers') {
     include '**/*.jar'
   }
-}
-
-task downloadOfficialLibraries(type: Copy) {
-  from sourceSets.main.runtimeClasspath
-  into 'Drivers/'
 }
 
 import java.nio.file.Path
@@ -53,16 +15,16 @@ def downloadFile = { remoteUrl, localDir ->
   }
 }
 
-task downloadIncubatingLibraries {
+task downloadJarsIntoDriversDir {
     doLast {
+      downloadFile('http://central.maven.org/maven2/ru/yandex/qatools/ashot/ashot/1.5.4/ashot-1.5.4.jar', 'Drivers/')
+      downloadFile('http://central.maven.org/maven2/net/coobird/thumbnailator/0.4.8/thumbnailator-0.4.8.jar', 'Drivers/')
       downloadFile('https://github.com/kazurayam/Materials/releases/download/0.60.0/Materials-0.60.0.jar', 'Drivers/')
     }
 }
 
 task drivers {
   dependsOn 'deleteJarsInDriversDir'
-  dependsOn 'downloadOfficialLibraries'
-  dependsOn 'downloadIncubatingLibraries'
-  tasks.findByName('downloadOfficialLibraries').mustRunAfter 'deleteJarsInDriversDir'
-  tasks.findByName('downloadIncubatingLibraries').mustRunAfter 'deleteJarsInDriversDir'
+  dependsOn 'downloadJarsIntoDriversDir'
+  tasks.findByName('downloadJarsIntoDriversDir').mustRunAfter 'deleteJarsInDriversDir'
 }
